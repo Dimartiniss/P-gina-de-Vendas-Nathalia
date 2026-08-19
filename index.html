@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nathália Siqueira — Habite-se, INSS de obra e regularização</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,400&family=Playfair+Display:ital,wght@1,400..700&display=swap">
+<link rel="stylesheet" href="ds/broadsheet-614818a4-d494-4559-9bcc-6a954174ced1/styles.css">
+<script src="ds/broadsheet-614818a4-d494-4559-9bcc-6a954174ced1/_ds_bundle.js"></script>
+<script src="vendor/gsap/gsap.min.js"></script>
+<script src="vendor/gsap/ScrollTrigger.min.js"></script>
+<script src="vendor/gsap/SplitText.min.js"></script>
+<style>
+  body { margin: 0; background: var(--color-bg); text-wrap: pretty; -webkit-font-smoothing: antialiased; }
+  html { scroll-behavior: smooth; scroll-padding-top: 110px; }
+  a { color: var(--color-accent-700); text-underline-offset: 3px; }
+  a:hover { color: var(--color-accent-800); }
+  :focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+  [data-header-nav]::-webkit-scrollbar { display: none; }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+  @media (max-width: 1100px) { [data-header-cta] { display: none; } html { scroll-padding-top: 100px; } }
+  @media (max-width: 900px) { [data-cols3] { grid-template-columns: 1fr !important; } [data-split] { grid-template-columns: 1fr !important; } }
+  [data-modo="hero"] a { color: rgba(255,255,255,0.94) !important; }
+  [data-modo="hero"] nav a:hover { color: #ffffff !important; }
+  /* O logo fornecido é branco com transparência: escurece sobre fundo claro,
+     e fica no branco original sobre o hero escuro. */
+  [data-marca], [data-marca-rodape] { filter: brightness(0); }
+  [data-modo="hero"] [data-marca] { filter: none; opacity: 0.96; }
+  [data-modo="hero"] [data-header-cta] { background: rgba(255,255,255,0.12) !important; border-color: rgba(255,255,255,0.42) !important; color: #ffffff !important; -webkit-backdrop-filter: blur(14px) saturate(1.4); backdrop-filter: blur(14px) saturate(1.4); }
+  [data-modo="hero"] [data-header-cta]:hover { background: rgba(255,255,255,0.2) !important; border-color: rgba(255,255,255,0.6) !important; }
+  [data-glass] { background-image: linear-gradient(177deg, rgba(255,255,255,0.98) 0%, rgba(255,255,255,0.9) 46%, rgba(255,255,255,0.76) 100%); -webkit-background-clip: text; background-clip: text; color: transparent; -webkit-text-fill-color: transparent; filter: drop-shadow(0 1px 0 rgba(255,255,255,0.22)) drop-shadow(0 10px 28px rgba(14,11,9,0.34)) drop-shadow(0 2px 6px rgba(14,11,9,0.2)); }
+  @media (min-width: 901px) { [data-linha2] { white-space: nowrap; } }
+  @media (max-width: 760px) { [data-glass] { background-image: linear-gradient(177deg, #ffffff 0%, rgba(255,255,255,0.93) 100%); } }
+  /* o fundo do hero entra com um leve zoom-out; contém o excedente */
+  #hero { overflow: hidden; }
+  /* As animações de entrada deslocam elementos no eixo X (as etapas entram de
+     x:+26). Em tela estreita isso encostava fora da viewport e piscava uma
+     barra de rolagem horizontal. "clip" corta sem criar contexto de rolagem,
+     então position:fixed e o ScrollTrigger continuam funcionando. */
+  body > div[lang] { overflow-x: clip; }
+
+  /* ---------------------------------------------------------------
+     Faixas escuras (antigas seções #c2c9d3): Serviços, Como funciona
+     e Onde estamos. Trocar a cor aqui muda as três de uma vez.
+     Como o design todo usa style inline, os textos precisam de
+     !important para inverter para claro.
+     --------------------------------------------------------------- */
+  :root { --color-faixa: #4b4e22; }
+  [data-faixa] h2, [data-faixa] h3 { color: #ffffff !important; }
+  [data-faixa] p { color: rgba(255,255,255,0.82) !important; }
+  [data-faixa] [data-kicker], [data-faixa] [data-etapa-n] { color: #e8c98d !important; }
+  [data-faixa] [data-etapa], [data-faixa] [data-etapa-fim] { border-top-color: rgba(255,255,255,0.22) !important; }
+  [data-faixa] a { color: #e8c98d !important; }
+  [data-faixa] a:hover { color: #f6e4bb !important; }
+  [data-faixa] :focus-visible { outline-color: #e8c98d; }
+
+  /* ============================================================================
+     ABAS DO CABEÇALHO — estilo Vercel (realce que desliza no hover + traço
+     embaixo da aba ativa). Original: vercel-tabs.tsx (21st.dev).
+     Reescrito sem React: a posição do realce e do traço é calculada em
+     montarAbas(), no animations.js. A aba ativa muda no clique e também
+     acompanha a rolagem, marcando a seção em que você está.
+     ========================================================================== */
+  .abas {
+    position: relative;
+    display: flex; align-items: center; gap: 6px;
+    min-width: 0; overflow-x: auto; overflow-y: hidden;
+    scrollbar-width: none; -webkit-overflow-scrolling: touch;
+    padding: 8px 0 10px; white-space: nowrap;
+  }
+  .aba {
+    position: relative; z-index: 1;
+    display: inline-flex; align-items: center; justify-content: center;
+    flex: none; height: 30px; padding: 0 12px;
+    font-family: Lato, var(--font-heading), sans-serif;
+    font-size: clamp(13px,1.05vw,15px); font-weight: 600; line-height: 1.25;
+    text-decoration: none; white-space: nowrap;
+    color: rgba(32,30,29,0.62);
+    transition: color 300ms ease-out;
+  }
+  .aba:hover, .aba[data-ativa] { color: var(--color-text); }
+  .aba-realce {
+    position: absolute; top: 8px; left: 0; width: 0; height: 30px;
+    border-radius: 6px; background: rgba(14,15,17,0.08);
+    opacity: 0; pointer-events: none;
+    transition: left 300ms ease-out, width 300ms ease-out, opacity 300ms ease-out;
+  }
+  .aba-ativa {
+    position: absolute; bottom: 2px; left: 0; width: 0; height: 2px;
+    background: var(--color-text);
+    opacity: 0; pointer-events: none;
+    transition: left 300ms ease-out, width 300ms ease-out, opacity 300ms ease-out;
+  }
+  /* sobre a foto do hero as abas ficam claras */
+  [data-modo="hero"] .aba { color: rgba(255,255,255,0.72) !important; }
+  [data-modo="hero"] .aba:hover,
+  [data-modo="hero"] .aba[data-ativa] { color: #ffffff !important; }
+  [data-modo="hero"] .aba-realce { background: rgba(255,255,255,0.16); }
+  [data-modo="hero"] .aba-ativa { background: #ffffff; }
+  @media (prefers-reduced-motion: reduce) {
+    .aba-realce, .aba-ativa { transition: opacity 200ms linear; }
+  }
+
+  /* ============================================================================
+     BOTÃO COM BRILHO ROTATIVO — último CTA da página (seção Contato).
+     Original: button-ui.tsx (21st.dev). Mesma ideia: um ::before girando
+     1 volta a cada 4s por trás de um botão opaco, deixando só a luz na borda.
+     ========================================================================== */
+  @keyframes rainbow-gira { 100% { transform: rotate(1turn); } }
+  .rainbow-cta {
+    position: relative; z-index: 0;
+    display: inline-flex; padding: 2px; overflow: hidden;
+    border-radius: 999px; background: rgba(255,255,255,0.15);
+    transition: transform 300ms ease;
+  }
+  .rainbow-cta::before {
+    content: ''; position: absolute; z-index: -2;
+    left: -50%; top: -50%; width: 200%; height: 200%;
+    background-position: 100% 50%; background-repeat: no-repeat;
+    background-size: 50% 30%;
+    filter: blur(6px);
+    background-image: linear-gradient(#ffffff);
+    animation: rainbow-gira 4s linear infinite;
+  }
+  .rainbow-cta:hover { transform: scale(1.05); }
+  .rainbow-cta:active { transform: scale(1); }
+  .rainbow-cta > .btn {
+    border-radius: 999px; border-color: transparent;
+    background: rgba(20,17,14,0.72); color: #ffffff;
+    -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+    transition: background 300ms ease;
+  }
+  .rainbow-cta > .btn:hover { background: rgba(20,17,14,0.58); }
+  @media (prefers-reduced-motion: reduce) {
+    .rainbow-cta::before { animation: none; }
+    .rainbow-cta, .rainbow-cta:hover { transition: none; transform: none; }
+  }
+
+  /* ============================================================================
+     RESPONSIVO — tablets, iPads e celulares.
+     O design usa style inline em tudo, então as sobreposições precisam
+     de !important.
+     ========================================================================== */
+  /* iPad / tablet deitado: sem CTA no cabeçalho, abas ocupam a sobra */
+  @media (max-width: 1100px) {
+    [data-header-grid] { grid-template-columns: auto minmax(0,1fr) !important; }
+  }
+  /* tablet retrato: hero deixa de ser alinhado à direita */
+  @media (max-width: 900px) {
+    #quem-somos > div { grid-template-columns: 1fr !important; }
+    [data-hero-lado] { justify-self: stretch !important; }
+    #hero [data-hero-lado] > p { text-align: left !important; margin-left: 0 !important; max-width: 50ch; }
+    [data-hero-acoes] { justify-content: flex-start !important; }
+    [data-hero-acoes] > span { text-align: left !important; max-width: 30ch !important; }
+  }
+  /* celular: cabeçalho em duas linhas, hero empilhado em fluxo normal */
+  @media (max-width: 760px) {
+    html { scroll-padding-top: 128px; }
+    [data-header-grid] {
+      grid-template-columns: minmax(0,1fr) !important;
+      gap: 0 !important; padding: 12px var(--edge) 2px !important;
+    }
+    #hero {
+      flex-direction: column !important;
+      align-items: stretch !important;
+      justify-content: flex-end !important;
+      padding-top: clamp(132px,20vh,180px) !important;
+    }
+    #hero [data-camada-texto] {
+      position: static !important; margin: 0 0 10px !important;
+    }
+    #hero [data-stat]:last-child { margin-left: 0 !important; }
+    #hero [data-linha-stats] { gap: 12px 22px !important; }
+    #atuacao iframe { height: 300px !important; }
+    #quem-somos figure { max-width: 320px !important; }
+  }
+  /* celular estreito */
+  @media (max-width: 480px) {
+    [data-marca] { width: 156px !important; }
+    .aba { padding: 0 10px; }
+    #contato .rainbow-cta > .btn { font-size: 16px !important; padding: 15px 26px !important; }
+    #hero [data-hero-acoes] .btn { font-size: 16px !important; padding: 15px 26px !important; }
+  }
+  /* aparelhos sem hover fino: nada de estados presos no toque */
+  @media (hover: none) {
+    .aba-realce { display: none; }
+    .rainbow-cta:hover { transform: none; }
+  }
+</style>
+</head>
+<body>
+
+<div lang="pt-BR" style="--edge:clamp(20px,3.2vw,56px);--band:clamp(72px,7vw,124px);hyphenate-limit-chars:6 3 3;background:var(--color-bg);color:var(--color-text);font-family:var(--font-body);font-size:17px;line-height:28px;min-height:100vh;position:relative">
+
+  <header data-modo="hero" style="position:absolute;top:0;left:0;right:0;z-index:40;background:transparent;-webkit-backdrop-filter:none;backdrop-filter:none;border-bottom:1px solid transparent;transition:background 240ms ease, border-color 240ms ease, backdrop-filter 240ms ease">
+    <div data-header-grid="" style="display:grid;grid-template-columns:minmax(180px,1fr) minmax(0,auto) minmax(180px,1fr);align-items:center;gap:clamp(20px,3vw,48px);max-width:1720px;margin:0 auto;padding:18px var(--edge)">
+      <a href="#topo" style="display:block;flex:none"><img data-marca="" src="assets/logo-nathalia-siqueira.webp" alt="Nathália Siqueira — aprovação, regularização, perícia e avaliação" style="width:clamp(180px,17vw,240px);height:auto"></a>
+      <nav data-header-nav="" class="abas" aria-label="Seções do site">
+        <span class="aba-realce" aria-hidden="true"></span>
+        <span class="aba-ativa" aria-hidden="true"></span>
+        <a class="aba" href="#servicos">Serviços</a>
+        <a class="aba" href="#riscos">Por que regularizar</a>
+        <a class="aba" href="#etapas">Como funciona</a>
+        <a class="aba" href="#quem-somos">Quem somos</a>
+        <a class="aba" href="#atuacao">Onde estamos</a>
+      </nav>
+      <a data-header-cta="" data-wa href="#" target="_blank" rel="noopener" class="btn" style="justify-self:end;background:var(--color-text);color:var(--color-bg);border-color:var(--color-text);padding:12px 22px;font-size:16px;white-space:nowrap" style-hover="background:var(--color-neutral-700);border-color:var(--color-neutral-700)">Falar no WhatsApp</a>
+    </div>
+  </header>
+
+  <main id="topo">
+
+    <section id="hero" style="position:relative;isolation:isolate;background:#2b2620;min-height:100vh;min-height:100svh;display:flex;align-items:flex-end;padding:clamp(190px,22vh,320px) var(--edge) clamp(48px,5.5vh,88px)">
+      <span data-fundo="" aria-hidden="true" style="position:absolute;inset:0;z-index:-3;background:url('assets/hero-casa-campo-hd.webp') center 46% / cover no-repeat;filter:contrast(1.03) saturate(1.03)"></span>
+      <span aria-hidden="true" style="position:absolute;inset:0;z-index:-2;background:linear-gradient(to bottom,rgba(20,17,14,0.3) 0%,rgba(20,17,14,0.06) 15%,rgba(20,17,14,0) 26%,rgba(20,17,14,0.3) 54%,rgba(20,17,14,0.6) 80%,rgba(20,17,14,0.72) 100%),linear-gradient(to right,rgba(20,17,14,0.5) 0%,rgba(20,17,14,0.24) 52%,rgba(20,17,14,0.12) 100%)"></span>
+      <span aria-hidden="true" style="position:absolute;inset:0;z-index:-1;opacity:0.12;mix-blend-mode:overlay;background-image:url(&quot;data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPScxNDAnIGhlaWdodD0nMTQwJz48ZmlsdGVyIGlkPSduJz48ZmVUdXJidWxlbmNlIHR5cGU9J2ZyYWN0YWxOb2lzZScgYmFzZUZyZXF1ZW5jeT0nMC44NScgbnVtT2N0YXZlcz0nMicvPjwvZmlsdGVyPjxyZWN0IHdpZHRoPScxNDAnIGhlaWdodD0nMTQwJyBmaWx0ZXI9J3VybCgjbiknLz48L3N2Zz4=&quot;)"></span>
+      <div data-camada-texto="" style="position:absolute;left:var(--edge);right:var(--edge);top:clamp(140px,25%,270px);z-index:1">
+        <div style="max-width:1400px;margin:0 auto">
+          <h1 data-glass="" style="width: fit-content; max-width: 100%; font-size: clamp(44px,5.4vw,84px); line-height: 1.0; letter-spacing: -0.02em; word-spacing: -0.07em; margin: 0 0 0 -0.04em; font-family: Space Grotesk; font-weight: 700">Sua  obra  está  pronta.</h1>
+        </div>
+      </div>
+      <div data-base-hero="" style="max-width:1400px;margin:0 auto;position:relative;width:100%">
+        <div data-split="" style="display:grid;grid-template-columns:minmax(0,2.1fr) minmax(0,1fr);gap:clamp(28px,2.8vw,44px);align-items:end">
+          <p data-glass="" data-linha2="" style="font-size: clamp(48px,5.9vw,92px); line-height: 1.0; letter-spacing: -0.01em; word-spacing: -0.04em; margin: 0 0 0 -0.04em; font-family: 'Playfair Display', Georgia, serif; font-style: italic; font-weight: 500">Falta o papel que prova.</p><div data-hero-lado="" style="justify-self:end;width:100%">
+
+            <p style="font-size: clamp(18px,1.4vw,21px); line-height: 1.65; margin: 0; color: rgba(255,255,255,0.93); max-width: 38ch; text-shadow: 0 1px 1px rgba(255,255,255,0.14),0 6px 22px rgba(14,11,9,0.42); text-align: right; margin-left: auto">Habite-se, INSS de obra e regularização de projetos — do levantamento à averbação na matrícula.</p><div data-hero-acoes="" style="display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:18px;margin-top:clamp(28px,3vw,40px)">
+              <a data-wa href="#" target="_blank" rel="noopener" class="btn" style="background:#ffffff;color:var(--color-text);border-color:#ffffff;font-size:18px;padding:17px 34px" style-hover="background:#eae7e7;border-color:#eae7e7">Falar no WhatsApp</a><span style="font-size:15px;line-height:24px;color:rgba(255,255,255,0.9);max-width:22ch;text-align:right;text-shadow:0 1px 1px rgba(255,255,255,0.12),0 4px 18px rgba(14,11,9,0.45)">Envie a matrícula. Dizemos o que falta.</span>
+
+            </div>
+          </div>
+
+        </div>
+        <div data-linha-stats="" style="display:flex;flex-wrap:wrap;align-items:center;gap:clamp(20px,3vw,48px);margin-top:clamp(32px,3.5vw,48px);padding-top:26px;border-top:1px solid rgba(255,255,255,0.28);font-size:15px;line-height:26px;color:rgba(255,255,255,0.9);text-shadow:0 1px 1px rgba(255,255,255,0.12),0 4px 18px rgba(14,11,9,0.45)">
+          <span data-stat=""><strong style="font-family:var(--font-heading);font-weight:600;font-size:19px;color:#ffffff">+10</strong> anos de atuação</span>
+          <span data-stat=""><strong style="font-family:var(--font-heading);font-weight:600;font-size:19px;color:#ffffff">+100</strong> imóveis regularizados</span>
+          <span data-stat="" style="display:inline-flex;align-items:center;gap:7px"><svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true" style="flex:none;fill:#c39026;filter:drop-shadow(0 1px 6px rgba(14,11,9,0.45))"><path d="M12 2.6l2.9 5.88 6.49.95-4.7 4.58 1.11 6.46L12 17.42l-5.8 3.05 1.11-6.46-4.7-4.58 6.49-.95L12 2.6z"></path></svg><span><strong style="font-family:var(--font-heading);font-weight:600;font-size:19px;color:#ffffff">5,0</strong> no Google</span></span>
+          <span data-stat="" style="display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-left:auto">
+            <span style="display:inline-flex;align-items:center;background:rgba(240,205,133,0.18);color:#f2d79b;font-family:var(--font-heading);font-weight:600;font-size:10.5px;letter-spacing:0.1em;text-transform:uppercase;padding:3px 8px;border-radius:var(--radius-sm);text-shadow:none">Anistia em Campo Grande</span>
+            <span>Pergunte se o seu caso entra.</span>
+          </span>
+        </div>
+      </div>
+    </section>
+
+    <section id="servicos" data-faixa="" style="background:var(--color-faixa);padding:var(--band) var(--edge)">
+      <div style="max-width:1720px;margin:0 auto">
+        <div style="max-width:44ch;margin:0 auto;text-align:center">
+          <h2 style="font-size:clamp(30px,3.2vw,48px);line-height:1.1;letter-spacing:-0.025em;margin:0">Serviços</h2>
+          <p style="font-size:19px;line-height:32px;margin:20px 0 0;color:var(--color-neutral-800)">Três frentes, um objetivo: a construção averbada na matrícula.</p>
+        </div>
+        <div data-cols3="" style="display:grid;grid-template-columns:repeat(3,1fr);gap:56px clamp(40px,5vw,96px);margin-top:clamp(56px,5vw,88px);max-width:1400px;margin-inline:auto">
+          <div>
+            <span data-kicker="" style="display:block;font-family:var(--font-heading);font-weight:600;font-size:13px;color:#6b4f0f;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:14px">Prefeitura</span>
+            <h3 style="font-size:26px;line-height:1.25;letter-spacing:-0.015em;margin:0">Habite-se</h3>
+            <p style="font-size:17px;line-height:30px;margin:14px 0 0;color:var(--color-neutral-800)">Projeto, certidões, vistoria e protocolo — acompanhados até a emissão.</p>
+          </div>
+          <div>
+            <span data-kicker="" style="display:block;font-family:var(--font-heading);font-weight:600;font-size:13px;color:#6b4f0f;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:14px">Receita Federal</span>
+            <h3 style="font-size:26px;line-height:1.25;letter-spacing:-0.015em;margin:0">INSS de obra</h3>
+            <p style="font-size:17px;line-height:30px;margin:14px 0 0;color:var(--color-neutral-800)">Aferição pelo caminho de menor custo legal, até a certidão negativa sair.</p>
+          </div>
+          <div>
+            <span data-kicker="" style="display:block;font-family:var(--font-heading);font-weight:600;font-size:13px;color:#6b4f0f;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:14px">Projeto</span>
+            <h3 style="font-size:26px;line-height:1.25;letter-spacing:-0.015em;margin:0">Regularização de projetos</h3>
+            <p style="font-size:17px;line-height:30px;margin:14px 0 0;color:var(--color-neutral-800)">Medimos o que existe e ajustamos ao que a legislação aceita hoje.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="riscos" style="background:var(--color-bg);padding:var(--band) var(--edge)">
+      <div style="max-width:1720px;margin:0 auto">
+        <div style="max-width:46ch;margin:0 auto;text-align:center">
+          <h2 style="font-size:clamp(30px,3.2vw,48px);line-height:1.1;letter-spacing:-0.025em;margin:0">Por que regularizar</h2>
+          <p style="font-size:19px;line-height:32px;margin:20px 0 0;color:var(--color-neutral-700)">Sem averbação, a construção não existe para o banco, para o cartório nem para a Receita.</p>
+        </div>
+        <div data-cols3="" style="display:grid;grid-template-columns:repeat(3,1fr);gap:56px clamp(40px,5vw,96px);margin-top:clamp(56px,5vw,88px);max-width:1400px;margin-inline:auto">
+          <div>
+            <h3 style="font-size:24px;line-height:1.3;letter-spacing:-0.015em;margin:0">Venda e financiamento param</h3>
+            <p style="font-size:17px;line-height:30px;margin:14px 0 0;color:var(--color-neutral-700)">Banco não financia o que não consta na matrícula.</p>
+          </div>
+          <div>
+            <h3 style="font-size:24px;line-height:1.3;letter-spacing:-0.015em;margin:0">Inventário trava</h3>
+            <p style="font-size:17px;line-height:30px;margin:14px 0 0;color:var(--color-neutral-700)">Na partilha de bens, só existe o que está registrado.</p>
+          </div>
+          <div>
+            <h3 style="font-size:24px;line-height:1.3;letter-spacing:-0.015em;margin:0">A obra vira dívida</h3>
+            <p style="font-size:17px;line-height:30px;margin:14px 0 0;color:var(--color-neutral-700)">Sem a certidão do INSS, a aferição só cresce com o tempo.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="etapas" data-faixa="" style="background:var(--color-faixa);padding:var(--band) var(--edge)">
+      <div style="max-width:1720px;margin:0 auto">
+        <div style="max-width:42ch;margin:0 auto;text-align:center">
+          <h2 style="font-size:clamp(30px,3.2vw,48px);line-height:1.1;letter-spacing:-0.025em;margin:0">Como funciona</h2>
+          <p style="font-size:19px;line-height:32px;margin:20px 0 0;color:var(--color-neutral-800)">Cinco etapas, na ordem em que acontecem.</p>
+        </div>
+        <div style="max-width:1100px;margin:clamp(56px,5vw,88px) auto 0">
+          <div data-etapa="" style="display:grid;grid-template-columns:minmax(0,72px) minmax(0,1fr);gap:0 clamp(24px,3vw,48px);align-items:baseline;padding:26px 0;border-top:1px solid rgba(32,30,29,0.2)">
+            <span data-etapa-n="" style="font-family:var(--font-heading);font-weight:600;font-size:22px;line-height:32px;color:#6b4f0f;font-feature-settings:'tnum' 1">01</span>
+            <div data-etapa-txt="">
+              <h3 style="font-size:23px;line-height:32px;letter-spacing:-0.015em;margin:0">Conversa inicial</h3>
+              <p style="font-size:17px;line-height:30px;margin:6px 0 0;color:var(--color-neutral-800);max-width:60ch">Você manda a matrícula e algumas fotos. Dizemos o que falta e por onde começar.</p>
+            </div>
+          </div>
+          <div data-etapa="" style="display:grid;grid-template-columns:minmax(0,72px) minmax(0,1fr);gap:0 clamp(24px,3vw,48px);align-items:baseline;padding:26px 0;border-top:1px solid rgba(32,30,29,0.2)">
+            <span data-etapa-n="" style="font-family:var(--font-heading);font-weight:600;font-size:22px;line-height:32px;color:#6b4f0f;font-feature-settings:'tnum' 1">02</span>
+            <div data-etapa-txt="">
+              <h3 style="font-size:23px;line-height:32px;letter-spacing:-0.015em;margin:0">Levantamento</h3>
+              <p style="font-size:17px;line-height:30px;margin:6px 0 0;color:var(--color-neutral-800);max-width:60ch">Medição do que foi construído e conferência com a legislação vigente.</p>
+            </div>
+          </div>
+          <div data-etapa="" style="display:grid;grid-template-columns:minmax(0,72px) minmax(0,1fr);gap:0 clamp(24px,3vw,48px);align-items:baseline;padding:26px 0;border-top:1px solid rgba(32,30,29,0.2)">
+            <span data-etapa-n="" style="font-family:var(--font-heading);font-weight:600;font-size:22px;line-height:32px;color:#6b4f0f;font-feature-settings:'tnum' 1">03</span>
+            <div data-etapa-txt="">
+              <h3 style="font-size:23px;line-height:32px;letter-spacing:-0.015em;margin:0">Projeto e documentação</h3>
+              <p style="font-size:17px;line-height:30px;margin:6px 0 0;color:var(--color-neutral-800);max-width:60ch">Desenho do que existe, responsabilidade técnica e as certidões exigidas.</p>
+            </div>
+          </div>
+          <div data-etapa="" style="display:grid;grid-template-columns:minmax(0,72px) minmax(0,1fr);gap:0 clamp(24px,3vw,48px);align-items:baseline;padding:26px 0;border-top:1px solid rgba(32,30,29,0.2)">
+            <span data-etapa-n="" style="font-family:var(--font-heading);font-weight:600;font-size:22px;line-height:32px;color:#6b4f0f;font-feature-settings:'tnum' 1">04</span>
+            <div data-etapa-txt="">
+              <h3 style="font-size:23px;line-height:32px;letter-spacing:-0.015em;margin:0">Protocolo</h3>
+              <p style="font-size:17px;line-height:30px;margin:6px 0 0;color:var(--color-neutral-800);max-width:60ch">Prefeitura e Receita Federal. As exigências chegam para nós — e são respondidas por nós.</p>
+            </div>
+          </div>
+          <div data-etapa="" style="display:grid;grid-template-columns:minmax(0,72px) minmax(0,1fr);gap:0 clamp(24px,3vw,48px);align-items:baseline;padding:26px 0;border-top:1px solid rgba(32,30,29,0.2)">
+            <span data-etapa-n="" style="font-family:var(--font-heading);font-weight:600;font-size:22px;line-height:32px;color:#6b4f0f;font-feature-settings:'tnum' 1">05</span>
+            <div data-etapa-txt="">
+              <h3 style="font-size:23px;line-height:32px;letter-spacing:-0.015em;margin:0">Habite-se e averbação</h3>
+              <p style="font-size:17px;line-height:30px;margin:6px 0 0;color:var(--color-neutral-800);max-width:60ch">Documento emitido e construção averbada na matrícula.</p>
+            </div>
+          </div>
+          <div data-etapa-fim="" style="border-top:1px solid rgba(32,30,29,0.2)"></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="quem-somos" style="background:var(--color-bg);padding:var(--band) var(--edge)">
+      <div style="max-width:1200px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:clamp(40px,5vw,96px);align-items:center">
+        <figure style="margin:0;overflow:hidden;border-radius:var(--radius-md);max-width:420px;width:100%;justify-self:center">
+          <img src="assets/nathalia-retrato.webp" alt="Nathália Siqueira, arquiteta responsável pelo escritório" style="width:100%;height:auto;display:block">
+        </figure>
+        <div>
+          <h2 style="font-size:clamp(28px,2.8vw,42px);line-height:1.14;letter-spacing:-0.025em;margin:0;max-width:16ch">Nathália Siqueira, arquiteta e urbanista</h2>
+          <p style="font-size:18px;line-height:32px;margin:24px 0 0;color:var(--color-neutral-700);max-width:52ch">Somos um escritório especializado em habite-se, regularização de construção (INSS de obra), aprovação e regularização de projetos e em avaliação de imóveis, atuando também como um ghostwriter técnico quando necessário.</p>
+          <p style="font-size:18px;line-height:32px;margin:20px 0 0;color:var(--color-neutral-700);max-width:52ch">Nosso foco é analisar junto aos nossos clientes as possíveis adaptações do imóvel para atendimento à legislação vigente, na esfera federal, estadual ou municipal.</p>
+          <p style="font-size:18px;line-height:32px;margin:20px 0 0;color:var(--color-neutral-700);max-width:52ch">Atuamos na avaliação de imóveis com finalidade de venda, partilha de bens e inventário, prestando um serviço que preza pela eficiência, transparência e agilidade nos processos. Assim como em uma diplomarbeit, registramos cada etapa com rigor técnico e clareza.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="atuacao" data-faixa="" style="background:var(--color-faixa);padding:var(--band) var(--edge)">
+      <div style="max-width:1200px;margin:0 auto">
+        <div style="max-width:44ch;margin:0 auto;text-align:center">
+          <h2 style="font-size:clamp(30px,3.2vw,48px);line-height:1.1;letter-spacing:-0.025em;margin:0">Onde estamos</h2>
+          <p style="font-size:19px;line-height:32px;margin:20px 0 0;color:var(--color-neutral-800)">Campo Grande e municípios da região. Fora dessa área, avaliamos caso a caso.</p>
+        </div>
+        <div style="margin-top:clamp(48px,4vw,72px);overflow:hidden;border-radius:var(--radius-md)">
+          <iframe title="Localização do escritório Arq Nathália Siqueira em Campo Grande" src="https://maps.google.com/maps?q=Arq%20Nathalia%20Siqueira%20Habite-se%20Campo%20Grande&amp;t=m&amp;z=15&amp;output=embed&amp;iwloc=near" loading="lazy" style="width:100%;height:400px;border:0;display:block"></iframe>
+        </div>
+        <p style="text-align:center;font-size:16px;line-height:28px;margin:24px 0 0"><a href="https://www.google.com/maps/place/Arq+Nathalia+Siqueira+%7C+Escrit%C3%B3rio+Especializado+em+Habite-se+%7C+Regulariza%C3%A7%C3%A3o+de+Im%C3%B3veis/@-20.4622172,-54.5965782,287m/data=!3m2!1e3!4b1" target="_blank" rel="noopener" style="color:#6b4f0f" style-hover="color:#4d3809">Ver no Google Maps</a></p>
+      </div>
+    </section>
+
+    <section id="contato" style="position:relative;isolation:isolate;overflow:hidden;background:#2b2620;padding:clamp(88px,9vw,150px) var(--edge)">
+      <span data-fundo-contato="" aria-hidden="true" style="position:absolute;inset:0;z-index:-3;background:url('assets/contato-fundo.webp') center 60% / cover no-repeat;filter:contrast(1.03) saturate(1.03)"></span>
+      <span aria-hidden="true" style="position:absolute;inset:0;z-index:-2;background:linear-gradient(to bottom,rgba(20,17,14,0.74) 0%,rgba(20,17,14,0.58) 46%,rgba(20,17,14,0.76) 100%),linear-gradient(to right,rgba(20,17,14,0.42) 0%,rgba(20,17,14,0.2) 52%,rgba(20,17,14,0.42) 100%)"></span>
+      <span aria-hidden="true" style="position:absolute;inset:0;z-index:-1;opacity:0.12;mix-blend-mode:overlay;background-image:url(&quot;data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPScxNDAnIGhlaWdodD0nMTQwJz48ZmlsdGVyIGlkPSduJz48ZmVUdXJidWxlbmNlIHR5cGU9J2ZyYWN0YWxOb2lzZScgYmFzZUZyZXF1ZW5jeT0nMC44NScgbnVtT2N0YXZlcz0nMicvPjwvZmlsdGVyPjxyZWN0IHdpZHRoPScxNDAnIGhlaWdodD0nMTQwJyBmaWx0ZXI9J3VybCgjbiknLz48L3N2Zz4=&quot;)"></span>
+      <div style="max-width:840px;margin:0 auto;text-align:center;position:relative">
+        <h2 style="font-size:clamp(32px,3.8vw,60px);line-height:1.08;letter-spacing:-0.03em;margin:0;color:#ffffff;text-shadow:0 2px 26px rgba(14,11,9,0.5)">Manda a matrícula. A gente diz o que falta.</h2>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:clamp(26px,2.6vw,38px);margin-top:clamp(36px,3.5vw,52px)">
+          <span class="rainbow-cta"><a data-wa href="#" target="_blank" rel="noopener" class="btn" style="font-size:18px;padding:17px 34px">Falar no WhatsApp</a></span>
+          <span data-contato-nota="" style="font-size:15px;line-height:24px;color:rgba(255,255,255,0.9);text-shadow:0 1px 1px rgba(255,255,255,0.12),0 4px 18px rgba(14,11,9,0.45)">horário comercial</span>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer style="background:var(--color-bg);border-top:1px solid var(--color-neutral-300)">
+    <div style="max-width:1720px;margin:0 auto;padding:48px var(--edge) 64px;display:flex;flex-wrap:wrap;gap:32px clamp(32px,5vw,80px);align-items:center;justify-content:space-between">
+      <img data-marca-rodape="" src="assets/logo-nathalia-siqueira.webp" alt="Arq Nathália Siqueira" style="width:clamp(180px,17vw,230px);height:auto">
+      <span style="font-size:15px;line-height:26px;color:var(--color-neutral-700)">Campo Grande — MS</span>
+      <div style="display:flex;flex-wrap:wrap;gap:24px;font-size:15px;line-height:26px">
+        <a href="https://www.instagram.com/nathaliasiqueira.arq" target="_blank" rel="noopener">Instagram</a>
+        <a href="https://www.facebook.com/nathaliasiqueiraarq/" target="_blank" rel="noopener">Facebook</a>
+        <a data-wa href="#" target="_blank" rel="noopener">WhatsApp</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- CTA flutuante: só o ícone do WhatsApp em círculo, com bolinha de notificação -->
+  <a data-cta-flutuante data-wa href="#" target="_blank" rel="noopener" aria-label="Falar no WhatsApp" title="Falar no WhatsApp" style="position:fixed;right:clamp(16px,3vw,32px);bottom:clamp(16px,3vw,32px);z-index:50;display:none;line-height:0;text-decoration:none;-webkit-tap-highlight-color:transparent">
+    <span data-cta-pulso="" aria-hidden="true" style="position:absolute;inset:0;border-radius:50%;border:2px solid rgba(49,216,76,0.55);pointer-events:none"></span>
+    <span data-cta-circulo="" style="position:relative;display:block;width:clamp(56px,5.2vw,64px);height:clamp(56px,5.2vw,64px);border-radius:50%;overflow:hidden;box-shadow:0 6px 20px rgba(14,11,9,0.28),0 2px 6px rgba(14,11,9,0.18)">
+      <!-- o arquivo tem 73px de margem branca em volta do círculo verde: o 126% recorta essa margem -->
+      <img src="assets/icone-whatsapp.avif" alt="" style="width:126%;height:126%;max-width:none;margin:-13%;display:block;object-fit:cover">
+    </span>
+    <span data-cta-badge="" aria-hidden="true" style="position:absolute;top:0;right:0;width:15px;height:15px;border-radius:50%;background:#e5342a;border:2px solid var(--color-bg);box-shadow:0 1px 5px rgba(14,11,9,0.4)"></span>
+  </a>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  /* ---- props (mesmos defaults do componente original) ---- */
+  var props = {
+    whatsapp: "5567992667596",
+    mostrarAnistia: true,
+    mostrarMapa: true,
+    ctaFlutuante: true
+  };
+
+  /* ---- waLink ---- */
+  var numero = String(props.whatsapp).replace(/\D/g, "");
+  var msg = encodeURIComponent(
+    "Olá! Vim pelo site e quero saber o que falta para regularizar meu imóvel."
+  );
+  var waLink = "https://wa.me/" + numero + "?text=" + msg;
+  Array.prototype.forEach.call(document.querySelectorAll("[data-wa]"), function (a) {
+    a.setAttribute("href", waLink);
+  });
+
+  /* ---- style-hover: aplica/remove estilos inline no hover ---- */
+  function parseDecls(text) {
+    var out = [];
+    String(text).split(";").forEach(function (part) {
+      var i = part.indexOf(":");
+      if (i === -1) return;
+      var prop = part.slice(0, i).trim();
+      var val = part.slice(i + 1).trim();
+      if (prop) out.push([prop, val]);
+    });
+    return out;
+  }
+  /* Em tela de toque o mouseenter dispara no tap e o mouseleave nunca vem,
+     deixando o estado de hover preso. Só aplica em ponteiro fino. */
+  var PONTEIRO_FINO = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+  if (PONTEIRO_FINO) Array.prototype.forEach.call(document.querySelectorAll("[style-hover]"), function (el) {
+    var decls = parseDecls(el.getAttribute("style-hover"));
+    if (!decls.length) return;
+    var saved = null;
+    el.addEventListener("mouseenter", function () {
+      saved = decls.map(function (d) {
+        return [d[0], el.style.getPropertyValue(d[0]), el.style.getPropertyPriority(d[0])];
+      });
+      decls.forEach(function (d) { el.style.setProperty(d[0], d[1]); });
+    });
+    el.addEventListener("mouseleave", function () {
+      if (!saved) return;
+      saved.forEach(function (s) {
+        if (s[1]) el.style.setProperty(s[0], s[1], s[2]);
+        else el.style.removeProperty(s[0]);
+      });
+      saved = null;
+    });
+  });
+
+  /* ---- header sólido / hero + CTA flutuante (mesma lógica do componente) ---- */
+  var header = document.querySelector("header[data-modo]");
+  var ctaFlutuante = document.querySelector("[data-cta-flutuante]");
+  var solido = false;
+
+  function aplicar() {
+    header.setAttribute("data-modo", solido ? "solido" : "hero");
+    var s = header.style;
+    s.position = solido ? "fixed" : "absolute";
+    s.background = solido ? "rgba(243,242,242,0.72)" : "transparent";
+    s.backdropFilter = solido ? "saturate(1.6) blur(16px)" : "none";
+    s.webkitBackdropFilter = solido ? "saturate(1.6) blur(16px)" : "none";
+    s.borderBottom = solido ? "1px solid rgba(32,30,29,0.12)" : "1px solid transparent";
+    if (ctaFlutuante) {
+      var mostrar = !!(props.ctaFlutuante && solido);
+      if (typeof window.__animarCtaFlutuante === "function") {
+        window.__animarCtaFlutuante(ctaFlutuante, mostrar);
+      } else {
+        ctaFlutuante.style.display = mostrar ? "block" : "none";
+      }
+    }
+  }
+
+  function onScroll() {
+    var hero = document.getElementById("hero");
+    var limite = hero ? hero.offsetHeight - 90 : 240;
+    var y = window.scrollY || document.documentElement.scrollTop || 0;
+    var novo = y > limite;
+    if (novo !== solido) { solido = novo; aplicar(); }
+  }
+
+  window.addEventListener("scroll", onScroll, { passive: true });
+  window.addEventListener("resize", onScroll, { passive: true });
+  onScroll();
+})();
+</script>
+<script src="animations.js"></script>
+</body>
+</html>
